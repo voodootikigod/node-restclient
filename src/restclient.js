@@ -1,14 +1,74 @@
+/**
+ * restclient.js
+ *
+ * Getting down with the funkiness that is the HTTP Client of node.js and making
+ * it shine like jQuery. This library wraps up all the complexities of using node.js
+ * to process HTTP requests and presents them in a simple format of:
+ *
+ * client.VERB(url, [data], [callback], [type])
+ *
+ * If you provide data it will be encoded and sent as part of the body. If you provide
+ * a callback it will automatically be passed the resulting body message. If you provide
+ * a type of "json", it will attempt to convert prior to issueing the callback.
+ *
+ * Oh and it wraps up Basic Auth as if it were bacon!
+ *
+ * @voodootikigod
+ */
+ 
 var http = require("http"), base64 = require("./base64");
 
 
 var RestClient = (function () {
   var loopback = http.createClient(80, "127.0.0.1");
+  
+  
+  /*!
+   * param function is from the jQuery JavaScript Library v1.3.2
+   * http://jquery.com/
+   *
+   * param function is Copyright (c) 2009 John Resig
+   * Dual licensed under the MIT and GPL licenses.
+   * http://docs.jquery.com/License
+   */
+  var param = function( a ) {
+    var s = [ ];
+
+    function add( key, value ){
+      s[ s.length ] = encodeURIComponent(key) + '=' + encodeURIComponent(value);
+    };
+
+    // If an array was passed in, assume that it is an array
+    // of form elements
+    if ( jQuery.isArray(a) || a.jquery )
+      // Serialize the form elements
+      jQuery.each( a, function(){
+        add( this.name, this.value );
+      });
+
+    // Otherwise, assume that it's an object of key/value pairs
+    else
+      // Serialize the key/values
+      for ( var j in a )
+        // If the value is an array then the key names need to be repeated
+        if ( jQuery.isArray(a[j]) )
+          jQuery.each( a[j], function(){
+            add( j, this );
+          });
+        else
+          add( j, jQuery.isFunction(a[j]) ? a[j]() : a[j] );
+
+    // Return the resulting serialization
+    return s.join("&").replace(/%20/g, "+");
+  };
+  
+  
   var rest_call = function (method, url, data, callback, type) {
-    if (typeof data == "function")  {
+    if (typeof data === "function")  {
       type = callback;
       callback = data;
     }
-    if (typeof callback == "string") {
+    if (typeof callback === "string") {
       type = callback;
     }
     var uri = http.parseUri(url);
@@ -24,8 +84,16 @@ var RestClient = (function () {
     }
     var path = (uri.path || "/");
     var client = http.createClient((uri.port ||80), uri.host);
+    var encoded_data = null;
+    if (typeof data === "object") {
+     encoded_data = params(data); 
+     headers["Content-Length"] = encoded_data.length;
+    }
     var result = method.apply(client, [uri.path, headers]);
-    if (typeof callback == "function") {
+    if (encoded_data) {
+      request.sendBody(encoded_data);
+    }
+    if (typeof callback === "function") {
       result.finish(function (response) {
         var body = "";
         response.addListener("body", function (chunk) {
