@@ -19,9 +19,7 @@
 var http = require("http"), base64 = require("./base64");
 
 
-var RestClient = (function () {
-  var loopback = http.createClient(80, "127.0.0.1");
-  
+var RestClient = (function () {  
   
   /*!
    * param function is adapted from the 
@@ -85,7 +83,7 @@ var RestClient = (function () {
      encoded_data = params(data); 
      headers["Content-Length"] = encoded_data.length;
     }
-    var result = method.apply(client, [uri.path, headers]);
+    var result = client[method](uri.path, headers);
     if (encoded_data) {
       result.sendBody(encoded_data);
     }
@@ -108,23 +106,23 @@ var RestClient = (function () {
   };
   return {
     get: function(url, data, callback, type) {
-      var res = rest_call(loopback.get, url, data, callback, type);
+      var res = rest_call('get', url, data, callback, type);
       return res;
     },
     post: function(url, data, callback, type) {
-      var res = rest_call(loopback.post,url, data, callback, type);
+      var res = rest_call('post',url, data, callback, type);
       return res;
     },
     head: function(url, data, callback, type) {
-      var res = rest_call(loopback.head, url, data, callback, type);
+      var res = rest_call('head', url, data, callback, type);
       return res;
     },
     put: function(url, data, callback, type) {
-      var res = rest_call(loopback.put, url, data, callback, type);  
+      var res = rest_call('put', url, data, callback, type);  
       return res;
     },
     del: function(url, data, callback, type) {
-      var res = rest_call(loopback.del, url, data, callback, type);
+      var res = rest_call('del', url, data, callback, type);
       return res;
     }
   }
