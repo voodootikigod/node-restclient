@@ -6,11 +6,10 @@ Sometimes dabbling in HTTP Client connection and body processing can get messy. 
 Examples
 --------
 
-`
+
 	var restclient = require('./restclient'), sys = require("sys");
 	restclient.get("http://twitter.com/statuses/show/4.json", function(result) { sys.puts(result); }, "json");
 	restclient.post("http://username:password@twitter.com/statuses/update.json", {status: "I love Node.js"}, function(result) { sys.puts(result);  }, "json");
-`
 
 API
 ---
