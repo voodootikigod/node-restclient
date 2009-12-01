@@ -24,40 +24,36 @@ var RestClient = (function () {
   
   
   /*!
-   * param function is from the jQuery JavaScript Library v1.3.2
+   * param function is adapted from the 
+   * jQuery JavaScript Library v1.3.2
    * http://jquery.com/
    *
    * param function is Copyright (c) 2009 John Resig
    * Dual licensed under the MIT and GPL licenses.
    * http://docs.jquery.com/License
    */
-  var param = function( a ) {
+  var params = function( a ) {
     var s = [ ];
-
+    function isArray( obj ) {
+      return toString.call(obj) === "[object Array]";
+    }
+    function isFunction( obj ) {
+      return toString.call(obj) === "[object Function]";
+    }
     function add( key, value ){
       s[ s.length ] = encodeURIComponent(key) + '=' + encodeURIComponent(value);
     };
-
-    // If an array was passed in, assume that it is an array
-    // of form elements
-    if ( jQuery.isArray(a) || a.jquery )
-      // Serialize the form elements
-      jQuery.each( a, function(){
-        add( this.name, this.value );
-      });
-
-    // Otherwise, assume that it's an object of key/value pairs
-    else
-      // Serialize the key/values
-      for ( var j in a )
-        // If the value is an array then the key names need to be repeated
-        if ( jQuery.isArray(a[j]) )
-          jQuery.each( a[j], function(){
-            add( j, this );
-          });
-        else
-          add( j, jQuery.isFunction(a[j]) ? a[j]() : a[j] );
-
+    // Serialize the key/values
+    for ( var j in a )
+      // If the value is an array then the key names need to be repeated
+      if ( isArray(a[j]) ) {
+        var l = a[j].length;
+        for(var i=0; i<l; i++) {
+          add( j, a[j][i] );
+        }
+      } else {
+        add( j, isFunction(a[j]) ? a[j]() : a[j] );
+      }
     // Return the resulting serialization
     return s.join("&").replace(/%20/g, "+");
   };
@@ -91,7 +87,7 @@ var RestClient = (function () {
     }
     var result = method.apply(client, [uri.path, headers]);
     if (encoded_data) {
-      request.sendBody(encoded_data);
+      result.sendBody(encoded_data);
     }
     if (typeof callback === "function") {
       result.finish(function (response) {

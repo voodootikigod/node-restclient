@@ -19,6 +19,14 @@ restclient.get("http://twitter.com/statuses/public_timeline.json", function(resu
 });
 
 
+// Test sending data encoding
+restclient.get("http://search.twitter.com/search.json",  {q: "node", show_user: "true"}, function(result) {
+  if ((typeof result !== "object")) {
+    fail = true;
+  }
+}, "json");
+
+
 
 process.addListener("exit", function () {
   if (fail) {
