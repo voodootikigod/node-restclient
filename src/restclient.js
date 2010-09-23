@@ -16,7 +16,7 @@
  * @voodootikigod
  */
  
-var http = require("http"), base64 = require("./base64");
+var http = require("http"), base64 = require("./base64"), URL = require("url");
 
 
 var RestClient = (function () {  
@@ -65,7 +65,7 @@ var RestClient = (function () {
     if (typeof callback === "string") {
       type = callback;
     }
-    var uri = http.parseUri(url);
+    var uri = URL.parse(url);
     var headers = {};
     if (!headers["Host"] && uri.host) {
       headers["Host"] = uri.host;
@@ -76,24 +76,31 @@ var RestClient = (function () {
     if (!headers["Authorization"] && uri.user) {
       headers["Authorization"] = "Basic "+base64.encode(uri.user+":"+(uri.password||""));
     }
-    var path = (uri.path || "/");
+    var path = (uri.pathname || "/");
     var client = http.createClient((uri.port ||80), uri.host);
     var encoded_data = null;
     if (typeof data === "object") {
      encoded_data = params(data); 
-     headers["Content-Length"] = encoded_data.length;
     }
-    var result = client[method](uri.path, headers);
-    if (encoded_data) {
-      result.sendBody(encoded_data);
+    if (uri.search) {
+      path += uri.search;
+    } else if ((method == "GET" || method == "DELETE") && encoded_data) {
+      path += "?" + encoded_data;
+    } else if (method == "POST" || method == "PUT") {
+      headers["Content-Length"] = encoded_data.length;
+    }
+    
+    var request = client.request(method, path, headers);
+    if ((method == "POST" || method == "PUT") && encoded_data) {
+      request.write(encoded_data);
     }
     if (typeof callback === "function") {
-      result.finish(function (response) {
+      request.on("response", function (response) {
         var body = "";
-        response.addListener("body", function (chunk) {
+        response.addListener("data", function (chunk) {
           body += chunk;
         });
-        response.addListener("complete", function () {
+        response.addListener("end", function () {
           if (type == "json") {
             callback(JSON.parse(body));
           } else {
@@ -102,27 +109,28 @@ var RestClient = (function () {
         });
       });
     }
-    return result;
+    request.end();
+    return request;
   };
   return {
     get: function(url, data, callback, type) {
-      var res = rest_call('get', url, data, callback, type);
+      var res = rest_call('GET', url, data, callback, type);
       return res;
     },
     post: function(url, data, callback, type) {
-      var res = rest_call('post',url, data, callback, type);
+      var res = rest_call('POST',url, data, callback, type);
       return res;
     },
     head: function(url, data, callback, type) {
-      var res = rest_call('head', url, data, callback, type);
+      var res = rest_call('HEAD', url, data, callback, type);
       return res;
     },
     put: function(url, data, callback, type) {
-      var res = rest_call('put', url, data, callback, type);  
+      var res = rest_call('PUT', url, data, callback, type);  
       return res;
     },
     del: function(url, data, callback, type) {
-      var res = rest_call('del', url, data, callback, type);
+      var res = rest_call('DELETE', url, data, callback, type);
       return res;
     }
   }
