@@ -67,17 +67,17 @@ var RestClient = (function () {
     }
     var uri = URL.parse(url);
     var headers = {};
-    if (!headers["Host"] && uri.host) {
-      headers["Host"] = uri.host;
+    if (!headers["Host"] && uri.hostname) {
+      headers["Host"] = uri.hostname;
     }
     if (!headers["User-Agent"]) {
       headers["User-Agent"] = "Node.js HTTP Client";
     }
-    if (!headers["Authorization"] && uri.user) {
-      headers["Authorization"] = "Basic "+base64.encode(uri.user+":"+(uri.password||""));
+    if (!headers["Authorization"] && uri.auth) {
+      headers["Authorization"] = "Basic "+base64.encode(uri.auth);
     }
     var path = (uri.pathname || "/");
-    var client = http.createClient((uri.port ||80), uri.host);
+    var client = http.createClient((uri.port ||80), uri.hostname);
     var encoded_data = null;
     if (typeof data === "object") {
      encoded_data = params(data); 
