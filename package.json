@@ -1,0 +1,9 @@
+{
+  "name" : "node-restclient",
+  "version" : "0.0.1",
+  "description" : "node-restclient adds easy-to-use api for basic http methods",
+  "keywords": ["rest", "http"],
+  "engines": ["node"],
+  "directories": {"lib" : "./lib"},
+  "main" : "./lib/restclient.js"
+}
